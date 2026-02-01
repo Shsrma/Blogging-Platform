@@ -62,8 +62,8 @@ function Home() {
   }
 
   return (
-    <div className="home">
-      <div className="filters">
+    <div className="home container">
+      <div className="filters" style={{marginBottom:18}}>
         <form onSubmit={handleSearch} className="search-form">
           <input
             type="text"
@@ -90,40 +90,16 @@ function Home() {
       {posts.length === 0 ? (
         <div className="no-posts">No posts found. Create one!</div>
       ) : (
-        <div className="posts-list">
+        <div className="grid">
           {posts.map(post => (
-            <article key={post._id} className="post-card">
-              <div className="post-header">
-                <Link to={`/posts/${post._id}`} className="post-title">
-                  {post.title}
-                </Link>
-                <span className="post-category">{post.category}</span>
-              </div>
-
-              <p className="post-author">
-                By {post.author?.username} • {new Date(post.createdAt).toLocaleDateString()}
-              </p>
-
-              <p className="post-preview">
-                {post.content.substring(0, 200)}...
-              </p>
-
-              <div className="post-meta">
-                <span className="post-views">👁️ {post.views} views</span>
-                <span className="post-likes">❤️ {post.likes.length} likes</span>
-                <span className="post-comments">💬 {post.comments.length} comments</span>
-              </div>
-
-              <div className="post-actions">
-                <Link to={`/posts/${post._id}`} className="btn btn-primary">
-                  Read More
-                </Link>
-                <button
-                  onClick={() => handleDelete(post._id)}
-                  className="btn btn-danger"
-                >
-                  Delete
-                </button>
+            <article key={post._id} className="card">
+              <div style={{height:140,background:'#0b1220',borderRadius:10,marginBottom:12,display:'flex',alignItems:'center',justifyContent:'center',color:'#7b8794'}}>Image</div>
+              <div className="title">{post.title}</div>
+              <div className="meta">By {post.author?.username || 'Unknown'} • {new Date(post.createdAt).toLocaleDateString()}</div>
+              <div className="excerpt">{post.content.substring(0, 160)}...</div>
+              <div style={{display:'flex',justifyContent:'space-between',marginTop:12,alignItems:'center'}}>
+                <Link to={`/posts/${post._id}`} className="btn btn-primary">Read</Link>
+                <div style={{color:'var(--muted)',fontSize:13}}>{post.views} views • {post.comments.length} comments</div>
               </div>
             </article>
           ))}
@@ -149,6 +125,11 @@ function Home() {
           </button>
         </div>
       )}
+      <div className="fab">
+        {localStorage.getItem('token') && (
+          <Link to="/create" className="btn btn-primary">✍️ Create</Link>
+        )}
+      </div>
     </div>
   )
 }

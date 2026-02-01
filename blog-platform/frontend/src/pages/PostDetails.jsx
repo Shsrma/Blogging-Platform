@@ -126,7 +126,8 @@ function PostDetails() {
     return <div className="error">Post not found</div>
   }
 
-  const isAuthor = user?.id === post.author._id
+  const authorId = post.author?._id || post.author || ''
+  const isAuthor = user?.id === String(authorId)
   const hasLiked = post.likes.includes(user?.id)
 
   return (
@@ -137,7 +138,7 @@ function PostDetails() {
             <h1 className="post-title">{post.title}</h1>
 
             <div className="post-meta-info">
-              <span className="author">By {post.author.username}</span>
+              <span className="author">By {post.author?.username || (post.author && String(post.author).slice(0,6)) || 'Unknown'}</span>
               <span className="date">
                 {new Date(post.createdAt).toLocaleDateString()}
               </span>
@@ -151,7 +152,7 @@ function PostDetails() {
             ))}
           </div>
 
-          {post.tags.length > 0 && (
+          {post.tags && post.tags.length > 0 && (
             <div className="tags">
               {post.tags.map((tag, index) => (
                 <span key={index} className="tag">#{tag}</span>
@@ -210,23 +211,23 @@ function PostDetails() {
             ) : (
               comments.map(comment => (
                 <div key={comment._id} className="comment">
-                  <div className="comment-header">
-                    <span className="comment-author">{comment.author.username}</span>
-                    <span className="comment-date">
-                      {new Date(comment.createdAt).toLocaleDateString()}
-                    </span>
-                  </div>
+                      <div className="comment-header">
+                        <span className="comment-author">{comment.author?.username || String(comment.author).slice(0,6)}</span>
+                        <span className="comment-date">
+                          {new Date(comment.createdAt).toLocaleDateString()}
+                        </span>
+                      </div>
 
-                  <p className="comment-content">{comment.content}</p>
+                      <p className="comment-content">{comment.content}</p>
 
-                  {user?.id === comment.author._id && (
-                    <button
-                      onClick={() => handleDeleteComment(comment._id)}
-                      className="btn btn-sm btn-danger"
-                    >
-                      Delete
-                    </button>
-                  )}
+                      {user?.id === String(comment.author?._id || comment.author) && (
+                        <button
+                          onClick={() => handleDeleteComment(comment._id)}
+                          className="btn btn-sm btn-danger"
+                        >
+                          Delete
+                        </button>
+                      )}
                 </div>
               ))
             )}
