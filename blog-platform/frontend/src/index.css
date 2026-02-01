@@ -1,0 +1,65 @@
+:root{
+  --bg: #0f1720; /* dark page background base */
+  --card: #0b1220;
+  --muted: #94a3b8;
+  --text: #e6eef6;
+  --primary: #ff3b30; /* accent like Instagram/YouTube */
+  --accent-2: #ff9500;
+  --glass: rgba(255,255,255,0.03);
+}
+
+html,body,#root{height:100%;}
+
+*{box-sizing:border-box;margin:0;padding:0}
+
+body{
+  font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+  background: linear-gradient(180deg,#071226 0%, #071726 100%);
+  background-color: var(--bg);
+  color:var(--text);
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+}
+
+/* Light theme override */
+body.theme-light{
+  --bg: #f6f8fb;
+  --card: #ffffff;
+  --muted: #6b7280;
+  --text: #111827;
+  --primary: #ff3b30;
+  --accent-2: #ff9500;
+  --glass: rgba(0,0,0,0.03);
+  background: var(--bg);
+}
+
+button{cursor:pointer;border:none;background:transparent;color:inherit}
+
+input,textarea,select{font-family:inherit}
+
+.btn{display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:10px}
+.btn-primary{background:linear-gradient(90deg,var(--primary),var(--accent-2));color:#fff}
+.btn-ghost{background:var(--glass);padding:8px 10px;border-radius:10px}
+
+.loading{display:flex;align-items:center;justify-content:center;padding:40px;color:var(--muted)}
+.error{background:#ffe3e3;color:#7a0b0b;padding:12px;border-radius:8px}
+
+.container{max-width:1200px;margin:0 auto;padding:24px}
+
+/* Modern grid for posts */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:18px}
+
+.card{background:var(--card);border-radius:14px;padding:14px;box-shadow:0 6px 18px rgba(2,6,23,0.6);overflow:hidden}
+.card .title{font-weight:700;color:var(--text);font-size:18px;margin-bottom:8px}
+.card .meta{color:var(--muted);font-size:13px;margin-bottom:12px}
+.card .excerpt{color:var(--muted);font-size:14px;line-height:1.5}
+
+/* floating create button */
+.fab{position:fixed;right:26px;bottom:26px;z-index:999}
+
+/* simple responsive helpers */
+@media (max-width:768px){
+  .container{padding:16px}
+  .grid{grid-template-columns:repeat(2,1fr)}
+}
+
