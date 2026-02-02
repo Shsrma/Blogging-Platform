@@ -1,36 +1,139 @@
 .navbar {
-  background-color: #fff;
-  border-bottom: 1px solid #eee;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  .navbar{
-    position:sticky;top:0;z-index:999;background:transparent;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.03)
-  }
-  .navbar-container{max-width:1200px;margin:0 auto;padding:6px 20px;display:flex;align-items:center;justify-content:space-between}
-  .navbar-logo{font-weight:800;color:var(--text);text-decoration:none;display:flex;align-items:center;gap:10px;font-size:20px}
-  .navbar-logo:hover{opacity:0.95}
-  .navbar-menu{display:flex;align-items:center;gap:12px}
-  .left-group{display:flex;gap:12px;align-items:center}
-  .right-group{display:flex;gap:12px;align-items:center}
-  .nav-link{color:var(--text);text-decoration:none;font-weight:600;padding:8px 10px;border-radius:10px}
-  .nav-link:hover{background:rgba(255,255,255,0.03)}
-  .btn-create{background:linear-gradient(90deg,var(--primary),var(--accent-2));color:#fff;padding:8px 12px;border-radius:10px}
-  .btn-register{background:transparent;border:1px solid rgba(255,255,255,0.06);padding:8px 12px;border-radius:10px}
-  .user-menu{display:flex;align-items:center;gap:10px}
-  .user-name{font-weight:700;color:var(--text)}
-  .btn-logout{background:linear-gradient(90deg,#e63946,#ff3b30);color:#fff;padding:8px 12px;border-radius:10px}
+  position: sticky;
+  top: 0;
+  z-index: 999;
+  background: var(--card);
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(10px);
+}
 
-  @media (max-width:768px){
-    .navbar-container{padding:8px 12px}
-    .left-group{display:none}
+.navbar-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 6px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.navbar-logo {
+  font-weight: 800;
+  color: var(--text);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 20px;
+  transition: opacity 0.2s;
+}
+
+.navbar-logo:hover {
+  opacity: 0.9;
+}
+
+.navbar-menu {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.left-group {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.right-group {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.nav-link {
+  color: var(--text);
+  text-decoration: none;
+  font-weight: 600;
+  padding: 8px 12px;
+  border-radius: 10px;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.nav-link:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.btn-create {
+  background: linear-gradient(90deg, var(--primary), var(--accent-2));
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: 10px;
+}
+
+.btn-register {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 8px 12px;
+  border-radius: 10px;
+}
+
+.user-menu {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.user-name {
+  font-weight: 700;
+  color: var(--text);
+  font-size: 14px;
+}
+
+.btn-logout {
+  background: linear-gradient(90deg, #e63946, #ff3b30);
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: 10px;
+  transition: opacity 0.2s;
+}
+
+.btn-logout:hover {
+  opacity: 0.9;
+}
+
+@media (max-width: 768px) {
+  .navbar-container {
+    padding: 8px 12px;
   }
+
+  .left-group {
+    display: none;
+  }
+
+  .navbar-menu {
+    gap: 8px;
   }
 
   .nav-link {
-    font-size: 14px;
+    padding: 6px 10px;
+    font-size: 13px;
   }
 
-  .user-menu {
-    width: 100%;
-    gap: 10px;
+  .user-name {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .navbar-logo {
+    font-size: 18px;
+  }
+
+  .btn-create,
+  .btn-register,
+  .btn-logout {
+    padding: 6px 10px;
+    font-size: 12px;
   }
 }

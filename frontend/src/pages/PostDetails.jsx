@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import axiosInstance from '../api/axios'
+import ConfirmationDialog from '../components/ConfirmationDialog'
 import '../styles/PostDetails.css'
 
 function PostDetails() {
@@ -12,8 +13,11 @@ function PostDetails() {
   const [error, setError] = useState('')
   const [commentContent, setCommentContent] = useState('')
   const [commentLoading, setCommentLoading] = useState(false)
+  const [commentError, setCommentError] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
+  const [deletePostConfirm, setDeletePostConfirm] = useState(false)
+  const [deleteCommentConfirm, setDeleteCommentConfirm] = useState({ isOpen: false, commentId: null })
 
   const user = JSON.parse(localStorage.getItem('user') || '{}')
   const token = localStorage.getItem('token')
@@ -46,52 +50,69 @@ function PostDetails() {
       setTotalPages(response.data.pages)
     } catch (err) {
       console.error('Failed to fetch comments:', err)
+      setError(err.response?.data?.message || 'Failed to load comments')
     }
   }
 
   const handleAddComment = async (e) => {
     e.preventDefault()
+    setCommentError('')
 
     if (!token) {
-      alert('Please login to comment')
-      navigate('/login')
+      setCommentError('Please login to add a comment')
+      setTimeout(() => navigate('/login'), 1500)
       return
     }
 
-    if (!commentContent.trim()) return
+    if (!commentContent.trim()) {
+      setCommentError('Comment cannot be empty')
+      return
+    }
+
+    if (commentContent.trim().length < 3) {
+      setCommentError('Comment must be at least 3 characters long')
+      return
+    }
 
     setCommentLoading(true)
 
     try {
       const response = await axiosInstance.post(
         `/comments/post/${id}`,
-        { content: commentContent }
+        { content: commentContent.trim() }
       )
 
       setComments([response.data.comment, ...comments])
       setCommentContent('')
+      setCommentError('')
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to add comment')
+      setCommentError(err.response?.data?.message || 'Failed to add comment')
     } finally {
       setCommentLoading(false)
     }
   }
 
-  const handleDeleteComment = async (commentId) => {
-    if (!window.confirm('Delete this comment?')) return
+  const handleDeleteCommentClick = (commentId) => {
+    setDeleteCommentConfirm({ isOpen: true, commentId })
+  }
+
+  const handleDeleteCommentConfirm = async () => {
+    if (!deleteCommentConfirm.commentId) return
 
     try {
-      await axiosInstance.delete(`/comments/${commentId}`)
-      setComments(comments.filter(c => c._id !== commentId))
+      await axiosInstance.delete(`/comments/${deleteCommentConfirm.commentId}`)
+      setComments(comments.filter(c => c._id !== deleteCommentConfirm.commentId))
+      setDeleteCommentConfirm({ isOpen: false, commentId: null })
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to delete comment')
+      setError(err.response?.data?.message || 'Failed to delete comment')
+      setDeleteCommentConfirm({ isOpen: false, commentId: null })
     }
   }
 
   const handleLikePost = async () => {
     if (!token) {
-      alert('Please login to like')
-      navigate('/login')
+      setError('Please login to like posts')
+      setTimeout(() => navigate('/login'), 1500)
       return
     }
 
@@ -99,31 +120,53 @@ function PostDetails() {
       const response = await axiosInstance.post(`/posts/${id}/like`)
       setPost(response.data.post)
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to like post')
+      setError(err.response?.data?.message || 'Failed to like post')
     }
   }
 
-  const handleDeletePost = async () => {
-    if (!window.confirm('Are you sure you want to delete this post?')) return
+  const handleDeletePostClick = () => {
+    setDeletePostConfirm(true)
+  }
 
+  const handleDeletePostConfirm = async () => {
     try {
       await axiosInstance.delete(`/posts/${id}`)
       navigate('/')
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to delete post')
+      setError(err.response?.data?.message || 'Failed to delete post')
+      setDeletePostConfirm(false)
     }
   }
 
   if (loading) {
-    return <div className="loading">Loading post...</div>
+    return (
+      <div className="loading-container">
+        <div className="spinner"></div>
+        <p>Loading post...</p>
+      </div>
+    )
   }
 
-  if (error) {
-    return <div className="error">{error}</div>
+  if (error && !post) {
+    return (
+      <div className="error-container">
+        <div className="error-icon">⚠️</div>
+        <h3>Error Loading Post</h3>
+        <p>{error}</p>
+        <button onClick={() => navigate('/')} className="btn btn-primary">Go Home</button>
+      </div>
+    )
   }
 
   if (!post) {
-    return <div className="error">Post not found</div>
+    return (
+      <div className="error-container">
+        <div className="error-icon">📄</div>
+        <h3>Post Not Found</h3>
+        <p>The post you're looking for doesn't exist or has been deleted.</p>
+        <button onClick={() => navigate('/')} className="btn btn-primary">Go Home</button>
+      </div>
+    )
   }
 
   const authorId = post.author?._id || post.author || ''
@@ -132,6 +175,25 @@ function PostDetails() {
 
   return (
     <div className="post-details">
+      <ConfirmationDialog
+        isOpen={deletePostConfirm}
+        onClose={() => setDeletePostConfirm(false)}
+        onConfirm={handleDeletePostConfirm}
+        title="Delete Post"
+        message="Are you sure you want to delete this post? All comments will also be deleted. This action cannot be undone."
+        confirmText="Delete"
+        cancelText="Cancel"
+      />
+      <ConfirmationDialog
+        isOpen={deleteCommentConfirm.isOpen}
+        onClose={() => setDeleteCommentConfirm({ isOpen: false, commentId: null })}
+        onConfirm={handleDeleteCommentConfirm}
+        title="Delete Comment"
+        message="Are you sure you want to delete this comment? This action cannot be undone."
+        confirmText="Delete"
+        cancelText="Cancel"
+      />
+      {error && <div className="error-message">{error}</div>}
       <div className="post-details-container">
         <article className="post-content">
           <header className="post-header">
@@ -170,7 +232,7 @@ function PostDetails() {
 
             {isAuthor && (
               <button
-                onClick={handleDeletePost}
+                onClick={handleDeletePostClick}
                 className="btn btn-danger"
               >
                 Delete Post
@@ -189,15 +251,29 @@ function PostDetails() {
 
           {token ? (
             <form onSubmit={handleAddComment} className="comment-form">
+              {commentError && <div className="error-message">{commentError}</div>}
               <textarea
                 value={commentContent}
-                onChange={(e) => setCommentContent(e.target.value)}
+                onChange={(e) => {
+                  setCommentContent(e.target.value)
+                  setCommentError('')
+                }}
                 placeholder="Add a comment..."
                 rows="3"
+                maxLength={500}
               ></textarea>
-              <button type="submit" disabled={commentLoading} className="btn btn-primary">
-                {commentLoading ? 'Posting...' : 'Post Comment'}
-              </button>
+              <div className="comment-form-footer">
+                <span className="char-count">{commentContent.length}/500</span>
+                <button type="submit" disabled={commentLoading || !commentContent.trim()} className="btn btn-primary">
+                  {commentLoading ? (
+                    <>
+                      <span className="spinner-small"></span> Posting...
+                    </>
+                  ) : (
+                    'Post Comment'
+                  )}
+                </button>
+              </div>
             </form>
           ) : (
             <p className="login-prompt">
@@ -206,8 +282,11 @@ function PostDetails() {
           )}
 
           <div className="comments-list">
-            {comments.length === 0 ? (
-              <p className="no-comments">No comments yet. Be the first!</p>
+            {comments.length === 0 && !loading ? (
+              <div className="empty-comments">
+                <div className="empty-icon">💬</div>
+                <p>No comments yet. Be the first to comment!</p>
+              </div>
             ) : (
               comments.map(comment => (
                 <div key={comment._id} className="comment">
@@ -222,7 +301,7 @@ function PostDetails() {
 
                       {user?.id === String(comment.author?._id || comment.author) && (
                         <button
-                          onClick={() => handleDeleteComment(comment._id)}
+                          onClick={() => handleDeleteCommentClick(comment._id)}
                           className="btn btn-sm btn-danger"
                         >
                           Delete

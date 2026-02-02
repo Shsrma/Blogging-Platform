@@ -12,6 +12,7 @@ function CreatePost() {
   })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [validationErrors, setValidationErrors] = useState({})
   const navigate = useNavigate()
 
   const handleChange = (e) => {
@@ -22,9 +23,36 @@ function CreatePost() {
     }))
   }
 
+  const validateForm = () => {
+    const errors = {}
+
+    if (!formData.title.trim()) {
+      errors.title = 'Title is required'
+    } else if (formData.title.trim().length < 3) {
+      errors.title = 'Title must be at least 3 characters long'
+    } else if (formData.title.length > 200) {
+      errors.title = 'Title must be less than 200 characters'
+    }
+
+    if (!formData.content.trim()) {
+      errors.content = 'Content is required'
+    } else if (formData.content.trim().length < 10) {
+      errors.content = 'Content must be at least 10 characters long'
+    }
+
+    setValidationErrors(errors)
+    return Object.keys(errors).length === 0
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
+    setValidationErrors({})
+
+    if (!validateForm()) {
+      return
+    }
+
     setLoading(true)
 
     try {
@@ -35,13 +63,16 @@ function CreatePost() {
 
       const postData = {
         ...formData,
+        title: formData.title.trim(),
+        content: formData.content.trim(),
         tags: tagsArray
       }
 
       await axiosInstance.post('/posts', postData)
       navigate('/')
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to create post')
+      const errorMessage = err.response?.data?.message || 'Failed to create post. Please try again.'
+      setError(errorMessage)
     } finally {
       setLoading(false)
     }
@@ -61,11 +92,19 @@ function CreatePost() {
               type="text"
               name="title"
               value={formData.title}
-              onChange={handleChange}
+              onChange={(e) => {
+                handleChange(e)
+                if (validationErrors.title) {
+                  setValidationErrors({ ...validationErrors, title: '' })
+                }
+              }}
               placeholder="Enter post title"
+              className={validationErrors.title ? 'error-input' : ''}
               required
               maxLength="200"
             />
+            {validationErrors.title && <span className="field-error">{validationErrors.title}</span>}
+            <span className="char-count">{formData.title.length}/200</span>
           </div>
 
           <div className="form-row">
@@ -100,11 +139,19 @@ function CreatePost() {
             <textarea
               name="content"
               value={formData.content}
-              onChange={handleChange}
+              onChange={(e) => {
+                handleChange(e)
+                if (validationErrors.content) {
+                  setValidationErrors({ ...validationErrors, content: '' })
+                }
+              }}
               placeholder="Write your post content here..."
               rows="15"
+              className={validationErrors.content ? 'error-input' : ''}
               required
             ></textarea>
+            {validationErrors.content && <span className="field-error">{validationErrors.content}</span>}
+            <span className="char-count">{formData.content.length} characters</span>
           </div>
 
           <div className="form-actions">

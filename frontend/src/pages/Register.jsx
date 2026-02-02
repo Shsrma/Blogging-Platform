@@ -12,6 +12,7 @@ function Register() {
   })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [validationErrors, setValidationErrors] = useState({})
   const navigate = useNavigate()
 
   const handleChange = (e) => {
@@ -22,9 +23,46 @@ function Register() {
     }))
   }
 
+  const validateForm = () => {
+    const errors = {}
+
+    if (!formData.username.trim()) {
+      errors.username = 'Username is required'
+    } else if (formData.username.length < 3) {
+      errors.username = 'Username must be at least 3 characters long'
+    }
+
+    if (!formData.email.trim()) {
+      errors.email = 'Email is required'
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      errors.email = 'Please enter a valid email address'
+    }
+
+    if (!formData.password) {
+      errors.password = 'Password is required'
+    } else if (formData.password.length < 6) {
+      errors.password = 'Password must be at least 6 characters long'
+    }
+
+    if (!formData.confirmPassword) {
+      errors.confirmPassword = 'Please confirm your password'
+    } else if (formData.password !== formData.confirmPassword) {
+      errors.confirmPassword = 'Passwords do not match'
+    }
+
+    setValidationErrors(errors)
+    return Object.keys(errors).length === 0
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
+    setValidationErrors({})
+
+    if (!validateForm()) {
+      return
+    }
+
     setLoading(true)
 
     try {
@@ -35,7 +73,8 @@ function Register() {
 
       navigate('/')
     } catch (err) {
-      setError(err.response?.data?.message || 'Registration failed')
+      const errorMessage = err.response?.data?.message || 'Registration failed. Please try again.'
+      setError(errorMessage)
     } finally {
       setLoading(false)
     }
@@ -55,9 +94,17 @@ function Register() {
               type="text"
               name="username"
               value={formData.username}
-              onChange={handleChange}
+              onChange={(e) => {
+                handleChange(e)
+                if (validationErrors.username) {
+                  setValidationErrors({ ...validationErrors, username: '' })
+                }
+              }}
+              className={validationErrors.username ? 'error-input' : ''}
+              minLength={3}
               required
             />
+            {validationErrors.username && <span className="field-error">{validationErrors.username}</span>}
           </div>
 
           <div className="form-group">
@@ -66,9 +113,16 @@ function Register() {
               type="email"
               name="email"
               value={formData.email}
-              onChange={handleChange}
+              onChange={(e) => {
+                handleChange(e)
+                if (validationErrors.email) {
+                  setValidationErrors({ ...validationErrors, email: '' })
+                }
+              }}
+              className={validationErrors.email ? 'error-input' : ''}
               required
             />
+            {validationErrors.email && <span className="field-error">{validationErrors.email}</span>}
           </div>
 
           <div className="form-group">
@@ -77,9 +131,20 @@ function Register() {
               type="password"
               name="password"
               value={formData.password}
-              onChange={handleChange}
+              onChange={(e) => {
+                handleChange(e)
+                if (validationErrors.password) {
+                  setValidationErrors({ ...validationErrors, password: '' })
+                }
+                if (validationErrors.confirmPassword && formData.confirmPassword) {
+                  setValidationErrors({ ...validationErrors, confirmPassword: '' })
+                }
+              }}
+              className={validationErrors.password ? 'error-input' : ''}
+              minLength={6}
               required
             />
+            {validationErrors.password && <span className="field-error">{validationErrors.password}</span>}
           </div>
 
           <div className="form-group">
@@ -88,9 +153,16 @@ function Register() {
               type="password"
               name="confirmPassword"
               value={formData.confirmPassword}
-              onChange={handleChange}
+              onChange={(e) => {
+                handleChange(e)
+                if (validationErrors.confirmPassword) {
+                  setValidationErrors({ ...validationErrors, confirmPassword: '' })
+                }
+              }}
+              className={validationErrors.confirmPassword ? 'error-input' : ''}
               required
             />
+            {validationErrors.confirmPassword && <span className="field-error">{validationErrors.confirmPassword}</span>}
           </div>
 
           <button type="submit" disabled={loading} className="btn btn-primary">

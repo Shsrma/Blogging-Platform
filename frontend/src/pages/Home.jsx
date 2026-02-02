@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import axiosInstance from '../api/axios'
+import ConfirmationDialog from '../components/ConfirmationDialog'
 import '../styles/Home.css'
 
 function Home() {
@@ -11,6 +12,7 @@ function Home() {
   const [totalPages, setTotalPages] = useState(1)
   const [search, setSearch] = useState('')
   const [category, setCategory] = useState('')
+  const [deleteConfirm, setDeleteConfirm] = useState({ isOpen: false, postId: null })
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -46,23 +48,34 @@ function Home() {
     fetchPosts()
   }
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this post?')) return
-
-    try {
-      await axiosInstance.delete(`/posts/${id}`)
-      setPosts(posts.filter(post => post._id !== id))
-    } catch (err) {
-      alert(err.response?.data?.message || 'Failed to delete post')
-    }
+  const handleDeleteClick = (id) => {
+    setDeleteConfirm({ isOpen: true, postId: id })
   }
 
-  if (loading && posts.length === 0) {
-    return <div className="loading">Loading posts...</div>
+  const handleDeleteConfirm = async () => {
+    if (!deleteConfirm.postId) return
+
+    try {
+      await axiosInstance.delete(`/posts/${deleteConfirm.postId}`)
+      setPosts(posts.filter(post => post._id !== deleteConfirm.postId))
+      setDeleteConfirm({ isOpen: false, postId: null })
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to delete post')
+      setDeleteConfirm({ isOpen: false, postId: null })
+    }
   }
 
   return (
     <div className="home container">
+      <ConfirmationDialog
+        isOpen={deleteConfirm.isOpen}
+        onClose={() => setDeleteConfirm({ isOpen: false, postId: null })}
+        onConfirm={handleDeleteConfirm}
+        title="Delete Post"
+        message="Are you sure you want to delete this post? This action cannot be undone."
+        confirmText="Delete"
+        cancelText="Cancel"
+      />
       <div className="filters" style={{marginBottom:18}}>
         <form onSubmit={handleSearch} className="search-form">
           <input
@@ -85,10 +98,22 @@ function Home() {
         </form>
       </div>
 
-      {error && <div className="error">{error}</div>}
+      {error && <div className="error-message">{error}</div>}
 
-      {posts.length === 0 ? (
-        <div className="no-posts">No posts found. Create one!</div>
+      {loading && posts.length === 0 ? (
+        <div className="loading-container">
+          <div className="spinner"></div>
+          <p>Loading posts...</p>
+        </div>
+      ) : posts.length === 0 ? (
+        <div className="empty-state">
+          <div className="empty-icon">📝</div>
+          <h3>No posts found</h3>
+          <p>{search || category ? 'Try adjusting your search or filters.' : 'Be the first to create a post!'}</p>
+          {localStorage.getItem('token') && (
+            <Link to="/create" className="btn btn-primary">Create Post</Link>
+          )}
+        </div>
       ) : (
         <div className="grid">
           {posts.map(post => (
@@ -97,9 +122,13 @@ function Home() {
               <div className="title">{post.title}</div>
               <div className="meta">By {post.author?.username || 'Unknown'} • {new Date(post.createdAt).toLocaleDateString()}</div>
               <div className="excerpt">{post.content.substring(0, 160)}...</div>
-              <div style={{display:'flex',justifyContent:'space-between',marginTop:12,alignItems:'center'}}>
-                <Link to={`/posts/${post._id}`} className="btn btn-primary">Read</Link>
-                <div style={{color:'var(--muted)',fontSize:13}}>{post.views} views • {post.comments.length} comments</div>
+              <div className="card-footer">
+                <Link to={`/posts/${post._id}`} className="btn btn-primary">Read More</Link>
+                <div className="card-stats">
+                  <span>👁️ {post.views || 0}</span>
+                  <span>💬 {post.comments?.length || 0}</span>
+                  {post.likes?.length > 0 && <span>❤️ {post.likes.length}</span>}
+                </div>
               </div>
             </article>
           ))}

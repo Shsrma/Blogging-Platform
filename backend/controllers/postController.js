@@ -33,6 +33,7 @@ const getAllPosts = async (req, res) => {
       currentPage: Number(page)
     });
   } catch (error) {
+    console.error('Error fetching posts:', error);
     res.status(500).json({
       success: false,
       message: error.message || 'Failed to fetch posts'
@@ -67,6 +68,13 @@ const getPostById = async (req, res) => {
       post
     });
   } catch (error) {
+    if (error.name === 'CastError') {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid post ID'
+      });
+    }
+    console.error('Error fetching post:', error);
     res.status(500).json({
       success: false,
       message: error.message || 'Failed to fetch post'
@@ -78,10 +86,31 @@ const createPost = async (req, res) => {
   try {
     const { title, content, category, tags } = req.body;
 
-    if (!title || !content) {
+    if (!title || !title.trim()) {
       return res.status(400).json({
         success: false,
-        message: 'Please provide title and content'
+        message: 'Post title is required'
+      });
+    }
+
+    if (!content || !content.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Post content is required'
+      });
+    }
+
+    if (title.length < 3) {
+      return res.status(400).json({
+        success: false,
+        message: 'Title must be at least 3 characters long'
+      });
+    }
+
+    if (content.length < 10) {
+      return res.status(400).json({
+        success: false,
+        message: 'Content must be at least 10 characters long'
       });
     }
 
@@ -144,6 +173,13 @@ const updatePost = async (req, res) => {
       post
     });
   } catch (error) {
+    if (error.name === 'CastError') {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid post ID'
+      });
+    }
+    console.error('Error updating post:', error);
     res.status(500).json({
       success: false,
       message: error.message || 'Failed to update post'
@@ -179,6 +215,13 @@ const deletePost = async (req, res) => {
       message: 'Post deleted successfully'
     });
   } catch (error) {
+    if (error.name === 'CastError') {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid post ID'
+      });
+    }
+    console.error('Error deleting post:', error);
     res.status(500).json({
       success: false,
       message: error.message || 'Failed to delete post'

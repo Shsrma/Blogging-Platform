@@ -6,10 +6,10 @@ const createComment = async (req, res) => {
     const { content } = req.body;
     const { postId } = req.params;
 
-    if (!content) {
+    if (!content || !content.trim()) {
       return res.status(400).json({
         success: false,
-        message: 'Please provide comment content'
+        message: 'Comment content cannot be empty'
       });
     }
 
@@ -40,6 +40,13 @@ const createComment = async (req, res) => {
       comment
     });
   } catch (error) {
+    if (error.name === 'CastError') {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid post ID'
+      });
+    }
+    console.error('Error creating comment:', error);
     res.status(500).json({
       success: false,
       message: error.message || 'Failed to create comment'
@@ -64,6 +71,7 @@ const getPostComments = async (req, res) => {
 
     const totalComments = await Comment.countDocuments({ post: postId });
     const comments = await Comment.find({ post: postId })
+      .populate('author', 'username email')
       .sort({ createdAt: -1 })
       .limit(Number(limit))
       .skip(skip);
@@ -114,6 +122,13 @@ const updateComment = async (req, res) => {
       comment
     });
   } catch (error) {
+    if (error.name === 'CastError') {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid comment ID'
+      });
+    }
+    console.error('Error updating comment:', error);
     res.status(500).json({
       success: false,
       message: error.message || 'Failed to update comment'
@@ -154,6 +169,13 @@ const deleteComment = async (req, res) => {
       message: 'Comment deleted successfully'
     });
   } catch (error) {
+    if (error.name === 'CastError') {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid comment ID'
+      });
+    }
+    console.error('Error deleting comment:', error);
     res.status(500).json({
       success: false,
       message: error.message || 'Failed to delete comment'
